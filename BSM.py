@@ -7,7 +7,7 @@ import streamlit as st
 
 def black_scholes(S, K, T, r, sigma, option_type='call'):
     """
-    Calculate the Black-Scholes option price.
+    Calculate the Black-Scholes option price.P
     
     Parameters:
     S : float : Current stock price
