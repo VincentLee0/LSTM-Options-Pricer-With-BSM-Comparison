@@ -2,6 +2,7 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import numpy as np
 from datetime import timedelta
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.preprocessing.sequence import TimeseriesGenerator
@@ -12,6 +13,7 @@ from tensorflow.keras.layers import LSTM
 def main():
     ## Constants
     WINDOW_SIZE=25
+    TEST_SIZE=90
 
     ## import stock info
     ticker_symbol = "NVDA"
@@ -45,8 +47,8 @@ def main():
 
     ## preprocess closing price
     scaler = MinMaxScaler()
-    train = close_df.iloc[:-90].to_frame()
-    test = close_df.iloc[-90:].to_frame()
+    train = close_df.iloc[:-TEST_SIZE].to_frame()
+    test = close_df.iloc[-TEST_SIZE:].to_frame()
     print(train.loc["2023-07-31"])
 
     scaler.fit(train)
@@ -87,10 +89,12 @@ def main():
     
     print(preds[-10:])
     ##display prediction
+    print(np.array([None]*(len(close_df)-TEST_SIZE))[:10])
+    print(type(close_df[-TEST_SIZE:].values),close_df[-TEST_SIZE:].values[:10])
+    real_vals = np.concatenate((np.array([None]*(len(close_df)-TEST_SIZE)),close_df[-TEST_SIZE:].values))
     plt.figure(figsize=(10, 5))
-    #print(type(test.index[-1:],type(timedelta(days=1)),type(test.index))
     plt.plot(test.index.append(test.index[-1:]+timedelta(days=1)), preds, label='Predicted Close Price', color='red')
-    plt.plot(data.index, close_df, label='True Close Price', color='blue')
+    plt.plot(data.index, real_vals, label='True Close Price', color='blue')
     plt.title(f"{ticker} Stock Price")
     plt.xlabel("Date")
     plt.ylabel("Price (USD)")
