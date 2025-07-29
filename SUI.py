@@ -60,8 +60,10 @@ def get_option_inputs():
     st.sidebar.write(f"Selected Contract: {selected_type} at Strike Price ${selected_contract:.2f}")
     # Get Inputs for Black-Scholes Model
     T = (pd.to_datetime(expiration_date) - pd.to_datetime("today")).days / 365.0  # Convert days to years
-    r = 0.05  # Example risk-free interest rate (annualized)
-    sigma = selected_row['impliedVolatility']  # Use implied volatility from the selected contract
+    st.sidebar.write(f"Time to Expiration (T): {T:.2f} years")
+    r = st.sidebar.slider("Risk-Free Interest Rate (annualized)", 0.0, 1.0 , 0.05, 0.01)  # Risk-free rate
+    sigma = selected_row['impliedVolatility']  
+    st.sidebar.write(f"Implied Volatility (σ): {sigma:.2%}")
     K = selected_contract  # Strike price from the selected contract    
     # Calculate Black-Scholes Price
     option_price = black_scholes(S, K, T, r, sigma, selected_type.lower())
