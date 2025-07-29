@@ -2,6 +2,7 @@ import numpy as np
 import scipy.stats as si
 import streamlit as st
 import yfinance as yf
+import pandas as pd
 from BSM import black_scholes
 st.title("TITLE")
 
@@ -14,32 +15,60 @@ def get_option_inputs():
     
     stock = yf.Ticker(input_ticker)
     
-    # --- Get Current Stock Price (S) ---
+    # Get Current Stock Price (S)
     S = stock.history(period="1d")['Close'][0]
     st.sidebar.write(f"Current Stock Price ({input_ticker}): ${S:.2f}")
 
-    # --- Get Strike Price (K) and Implied Volatility (sigma) ---
-    # Fetch the options chain for puts (as in the original code)
-    # Note: Implied volatility will be based on the selected put option.
-    options_df = stock.option_chain().puts
-    
-    # Sidebar for strike price selection
-    K_Choice = st.sidebar.selectbox("Select Strike Price", options_df['strike'].tolist())
-    
-    # Find the implied volatility for the chosen strike price
-    sigma = options_df[options_df['strike'] == K_Choice]['impliedVolatility'].values[0]
-    st.sidebar.write(f"Implied Volatility (from selected K): {sigma:.2%}")
+    # Select Contract from Yfinance list
 
-    # --- Get other user inputs ---
-    T = st.sidebar.number_input("Time to Expiration (in years)", min_value=0.01, max_value=5.0, value=1.0, step=0.01)
-    r = st.sidebar.number_input("Risk-Free Interest Rate (annualized)", min_value=0.0, max_value=1.0, value=0.05, step=0.01)
-    option_type = st.sidebar.selectbox("Option Type", ['call', 'put'])
-    
-    return S, K_Choice, T, r, sigma, option_type, input_ticker
+    expiration_dates = stock.options
+    expiration_date = st.sidebar.selectbox("Select Expiration Date", expiration_dates)
+    options_df_puts = stock.option_chain(expiration_date).puts
+    options_df_calls = stock.option_chain(expiration_date).calls
+ # Fetch the entire options chain for the selected date
+    opt_chain = stock.option_chain(expiration_date)
 
-S, K_Choice, T, r, sigma, option_type, input_ticker= get_option_inputs()
+    # Separate calls and puts
+    calls = opt_chain.calls
+    puts = opt_chain.puts
+    # --- Display Call and Put Tables ---
+    col1, col2 = st.columns(2)
 
-price= black_scholes(S, K_Choice, T, r, sigma, option_type)
+    with col1:
+        st.subheader("Call Options")
+        # Display a styled dataframe for calls
+        st.dataframe(calls[[
+             'strike', 'lastPrice', 'bid', 'ask', 'volume', 'openInterest', 'inTheMoney', 'impliedVolatility'
+        ]]
+        )
 
-st.write(f"Predicted Price: {price:.2f}")  
+    with col2:
+        st.subheader("Put Options")
+        # Display a styled dataframe for puts
+        st.dataframe(puts[[
+            'strike', 'lastPrice', 'bid', 'ask', 'volume', 'openInterest', 'inTheMoney', 'impliedVolatility'
+        ]]
+        )
+    # Select Contract from Yfinance list call and put
+    selected_type = st.sidebar.selectbox("Select Option Type", ["Call", "Put"])
+    if selected_type == "Call":
+        options_df = options_df_calls
+    else:
+        options_df = options_df_puts
+    selected_contract = st.sidebar.selectbox("Select Strike Price", options_df['strike'].tolist())
+    selected_row = options_df[options_df['strike'] == selected_contract].iloc[0]
+    st.sidebar.write(f"Selected Contract: {selected_type} at Strike Price ${selected_contract:.2f}")
+    # Get Inputs for Black-Scholes Model
+    T = (pd.to_datetime(expiration_date) - pd.to_datetime("today")).days / 365.0  # Convert days to years
+    st.sidebar.write(f"Time to Expiration (T): {T:.2f} years")
+    r = st.sidebar.slider("Risk-Free Interest Rate (annualized)", 0.0, 1.0 , 0.05, 0.01)  # Risk-free rate
+    sigma = selected_row['impliedVolatility']  
+    st.sidebar.write(f"Implied Volatility (σ): {sigma:.2%}")
+    K = selected_contract  # Strike price from the selected contract    
+    # Calculate Black-Scholes Price
+    option_price = black_scholes(S, K, T, r, sigma, selected_type.lower())
+    st.sidebar.write(f"Black-Scholes Price for {selected_type} Option: ${option_price:.2f}")
+    return S, K, T, r, sigma, selected_type.lower()
 
+
+get_option_inputs()
