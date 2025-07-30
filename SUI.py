@@ -5,6 +5,7 @@ import yfinance as yf
 import pandas as pd
 from BSM import black_scholes
 from BT import binomial_tree
+from lstm import lstm_pred
 st.title("TITLE")
 
 
@@ -86,11 +87,16 @@ def models():
     # Calculate Binomial Tree Price
     option_price_BT = binomial_tree(S, K, T, r, sigma, selected_type.lower())
     st.sidebar.write(f"Binomial Tree Price for {selected_type} Option: ${option_price_BT:.2f}")
+    # Calcluate LSTM Price
+    option_price_LSTM = lstm_pred(K,r,int(T*365),selected_type.lower())
+    st.sidebar.write(f"LSTM price for {selected_type} Option: ${option_price_LSTM:.2f}")
+
     # Display the results
 
 
 
-#models()
-S, K, T, r, sigma, selected_type = get_option_inputs()
-option_price_BT = binomial_tree(S, K, T, r, sigma, selected_type.lower())
-print(option_price_BT)
+
+models()
+# S, K, T, r, sigma, selected_type = get_option_inputs()
+# option_price_BT = binomial_tree(S, K, T, r, sigma, selected_type.lower())
+# print(option_price_BT)
