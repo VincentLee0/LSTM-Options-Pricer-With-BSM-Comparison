@@ -5,10 +5,10 @@ import tensorflow as tf
 import numpy as np
 from datetime import timedelta
 from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.preprocessing.sequence import TimeseriesGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.layers import LSTM
+from tensorflow.keras.preprocessing.sequence import TimeseriesGenerator # type: ignore
+from tensorflow.keras.models import Sequential # type: ignore
+from tensorflow.keras.layers import Dense # type: ignore
+from tensorflow.keras.layers import LSTM # type: ignore
 
 def display_close_predictions(scaled_test,WINDOW_SIZE,n_input,n_features,lstm_model,scaler,close_df,TEST_SIZE,test,data,ticker):
     
@@ -49,15 +49,36 @@ def predict_n(scaled_test,n,width,n_input,n_features,lstm_model,scaler):
         in_window = predictions[-width:]
         in_window = in_window.reshape((1,n_input,n_features)) #reshape to match model input
         pred = lstm_model.predict(in_window)
-        predictions = np.concatenate((predictions,[pred]))
+        print(predictions,pred,[pred])
+        predictions = np.concatenate((predictions,pred))
         print("current pred: ",pred)
     ##unscale predictions
     
     predictions = list(map(lambda x: [x],predictions))
     print("predictionsAAAA",predictions)
-    predictions = list(map(scaler.inverse_transform,predictions)) #unscale predictions
+    predictions = map(scaler.inverse_transform,predictions) #unscale predictions
     print("predictions",predictions)
-    return predictions
+    predictions = list(map(lambda x: x[0][0],predictions))
+    return predictions # returns list of predictions including the original data
+
+# def test_pred_multiple_step():
+#     preds = predict_n(scaled_test[:WINDOW_SIZE],len(test.index)+1-WINDOW_SIZE,WINDOW_SIZE,n_input,n_features,lstm_model,scaler)
+#     #print(preds[-10:])
+#     ##display prediction
+#     #print(np.array([None]*(len(close_df)-TEST_SIZE))[:10])
+#     #print(type(close_df[-TEST_SIZE:].values),close_df[-TEST_SIZE:].values[:10])
+#     print(len(preds))
+#     real_vals = np.concatenate((np.array([None]*(len(close_df)-TEST_SIZE)),close_df[-TEST_SIZE:].values))
+#     plt.figure(figsize=(10, 5))
+#     plt.plot(test.index, preds, label='Predicted Close Price', color='red')
+#     plt.plot(data.index, real_vals, label='True Close Price', color='blue')
+#     plt.title(f"{ticker} Stock Price")
+#     plt.xlabel("Date")
+#     plt.ylabel("Price (USD)")
+#     plt.grid(True)
+#     plt.legend()
+#     plt.tight_layout()
+#     plt.show()
 
 def main():
     ## Constants
@@ -129,24 +150,8 @@ def main():
     #display_close_predictions(scaled_test,WINDOW_SIZE,n_input,n_features,lstm_model,scaler,close_df,TEST_SIZE,test,data,ticker)
 
     # preds = predict_n(scaled_test,5,WINDOW_SIZE,n_input,n_features,lstm_model,scaler) #predict 5 days into future
-
-     ######temp#####
-    preds = predict_n(scaled_test[:WINDOW_SIZE],len(test.index)-1,WINDOW_SIZE,n_input,n_features,lstm_model,scaler)
-    print(preds[-10:])
-    ##display prediction
-    print(np.array([None]*(len(close_df)-TEST_SIZE))[:10])
-    print(type(close_df[-TEST_SIZE:].values),close_df[-TEST_SIZE:].values[:10])
-    real_vals = np.concatenate((np.array([None]*(len(close_df)-TEST_SIZE)),close_df[-TEST_SIZE:].values))
-    plt.figure(figsize=(10, 5))
-    plt.plot(test.index.append(test.index[-1:]+timedelta(days=1)), preds, label='Predicted Close Price', color='red')
-    plt.plot(data.index, real_vals, label='True Close Price', color='blue')
-    plt.title(f"{ticker} Stock Price")
-    plt.xlabel("Date")
-    plt.ylabel("Price (USD)")
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
+    
+    
     
     
 
