@@ -5,7 +5,7 @@ import yfinance as yf
 import pandas as pd
 from BSM import black_scholes
 from lstm import pred_lstm
-st.title("LTSM Option Pricing Model App")
+st.title("LSTM Option Pricing Model App")
 
 
 def get_option_inputs():   
