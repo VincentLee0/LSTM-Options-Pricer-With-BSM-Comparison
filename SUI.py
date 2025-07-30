@@ -4,11 +4,11 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 from BSM import black_scholes
-st.title("TITLE")
+st.title("LTCM Option Pricing Model App")
 
 
 def get_option_inputs():   
-    tickers = ["NVDA"]  #Add more tickers later 
+    tickers = ["NVDA", "AAPL", "AMD"]  #Add more tickers later 
 
     # Sidebar for ticker selection
     input_ticker = st.sidebar.selectbox("Select Ticker", tickers)
