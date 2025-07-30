@@ -4,6 +4,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 from BSM import black_scholes
+from BT import binomial_tree
 st.title("TITLE")
 
 
@@ -68,18 +69,28 @@ def get_option_inputs():
     st.sidebar.write(f"Selected Contract: {selected_type} at Strike Price ${selected_contract:.2f}")
     
     
-    # Get Inputs for Black-Scholes Model
+    # Get Inputs for Models
     T = (pd.to_datetime(expiration_date) - pd.to_datetime("today")).days / 365.0  # Convert days to years
     st.sidebar.write(f"Time to Expiration (T): {T:.2f} years")
     r = st.sidebar.slider("Risk-Free Interest Rate (annualized)", 0.0, 1.0 , 0.05, 0.01)  # Risk-free rate
     sigma = selected_row['impliedVolatility']  
     st.sidebar.write(f"Implied Volatility (σ): {sigma:.2%}")
     K = selected_contract  # Strike price from the selected contract    
-    # Calculate Black-Scholes Price
-    option_price = black_scholes(S, K, T, r, sigma, selected_type.lower())
-    st.sidebar.write(f"Black-Scholes Price for {selected_type} Option: ${option_price:.2f}")
     return S, K, T, r, sigma, selected_type.lower()
 
+def models():
+    # Calculate Black-Scholes Price
+    S, K, T, r, sigma, selected_type = get_option_inputs()
+    option_price_BSM = black_scholes(S, K, T, r, sigma, selected_type.lower())
+    st.sidebar.write(f"Black-Scholes Price for {selected_type} Option: ${option_price_BSM:.2f}")
+    # Calculate Binomial Tree Price
+    option_price_BT = binomial_tree(S, K, T, r, sigma, selected_type.lower())
+    st.sidebar.write(f"Binomial Tree Price for {selected_type} Option: ${option_price_BT:.2f}")
+    # Display the results
 
-get_option_inputs()
 
+
+#models()
+S, K, T, r, sigma, selected_type = get_option_inputs()
+option_price_BT = binomial_tree(S, K, T, r, sigma, selected_type.lower())
+print(option_price_BT)

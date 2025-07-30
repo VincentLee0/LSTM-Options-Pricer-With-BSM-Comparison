@@ -1,23 +1,9 @@
 import numpy as np
 import scipy.stats as si
-import streamlit as st
-import yfinance as yf
+
 
 def black_scholes(S, K, T, r, sigma, option_type):
-    """
-    Calculate the Black-Scholes option price.
     
-    Parameters:
-    S : float : Current stock price
-    K : float : Strike price
-    T : float : Time to expiration in years
-    r : float : Risk-free interest rate (annualized)
-    sigma : float : Volatility of the underlying asset (annualized)
-    option_type : str : 'call' or 'put'
-    
-    Returns:
-    float : Price of the option
-    """
     # Calculate d1 and d2
     d1 = (np.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
