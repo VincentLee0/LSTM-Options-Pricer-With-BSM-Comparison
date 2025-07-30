@@ -19,15 +19,10 @@ def display_close_predictions(scaled_test,WINDOW_SIZE,n_input,n_features,lstm_mo
         in_window = scaled_test[i:i+WINDOW_SIZE]
         in_window = in_window.reshape((1,n_input,n_features)) #reshape to match model input
         pred = lstm_model.predict(in_window)
-        print("current pred is:",pred)
         pred = scaler.inverse_transform(pred) #unscale prediction
-        print(i+WINDOW_SIZE,len(scaled_test)+1)
         preds[i+WINDOW_SIZE] = pred[0][0]
     
-    print(preds[-10:])
     ##display prediction
-    print(np.array([None]*(len(close_df)-TEST_SIZE))[:10])
-    print(type(close_df[-TEST_SIZE:].values),close_df[-TEST_SIZE:].values[:10])
     real_vals = np.concatenate((np.array([None]*(len(close_df)-TEST_SIZE)),close_df[-TEST_SIZE:].values))
     plt.figure(figsize=(10, 5))
     plt.plot(test.index.append(test.index[-1:]+timedelta(days=1)), preds, label='Predicted Close Price', color='red')
@@ -42,7 +37,6 @@ def display_close_predictions(scaled_test,WINDOW_SIZE,n_input,n_features,lstm_mo
 
 ## predict n steps into the future
 def predict_n(scaled_test,n,width,n_input,n_features,lstm_model,scaler):
-    print("n:",n)
     in_window = scaled_test[-width:]
     predictions = in_window #new line reverted
     
@@ -50,15 +44,11 @@ def predict_n(scaled_test,n,width,n_input,n_features,lstm_model,scaler):
         in_window = predictions[-width:]
         in_window = in_window.reshape((1,n_input,n_features)) #reshape to match model input
         pred = lstm_model.predict(in_window)
-        print(predictions,pred,[pred])
         predictions = np.concatenate((predictions,pred))
-        print("current pred: ",pred)
     ##unscale predictions
     
     predictions = list(map(lambda x: [x],predictions))
-    print("predictionsAAAA",predictions)
     predictions = map(scaler.inverse_transform,predictions) #unscale predictions
-    print("predictions",predictions)
     predictions = list(map(lambda x: x[0][0],predictions))
     return predictions # returns list of predictions including the original data
 
@@ -67,11 +57,7 @@ def predict_n_last(scaled_test,n,width,n_input,n_features,lstm_model,scaler):
 
 # def test_pred_multiple_step():
 #     preds = predict_n(scaled_test[:WINDOW_SIZE],len(test.index)+1-WINDOW_SIZE,WINDOW_SIZE,n_input,n_features,lstm_model,scaler)
-#     #print(preds[-10:])
 #     ##display prediction
-#     #print(np.array([None]*(len(close_df)-TEST_SIZE))[:10])
-#     #print(type(close_df[-TEST_SIZE:].values),close_df[-TEST_SIZE:].values[:10])
-#     print(len(preds))
 #     real_vals = np.concatenate((np.array([None]*(len(close_df)-TEST_SIZE)),close_df[-TEST_SIZE:].values))
 #     plt.figure(figsize=(10, 5))
 #     plt.plot(test.index, preds, label='Predicted Close Price', color='red')
@@ -95,18 +81,13 @@ def pred_lstm(input_ticker, real_k,real_r,real_t,option_type):
     ticker = yf.Ticker(ticker_symbol)
     data = ticker.history(period="2y")
     close_df = data['Close']
-    #print(last_quote)
 
     puts_df = ticker.option_chain().puts #get and filter put df
     has_volume = puts_df["volume"] >= 50
     puts_df = puts_df.loc[has_volume]
-    print(puts_df.head())   
-
-
 
     calls_df = ticker.option_chain().calls
     has_volume = calls_df["volume"] >= 50
-    #print(calls_df.head()) 
 
     # ##display on matplotlib
     # plt.figure(figsize=(10, 5))
@@ -123,7 +104,10 @@ def pred_lstm(input_ticker, real_k,real_r,real_t,option_type):
     scaler = MinMaxScaler()
     train = close_df.iloc[:-TEST_SIZE].to_frame()
     test = close_df.iloc[-TEST_SIZE:].to_frame()
-    print(train.loc["2023-07-31"])
+    try:
+        train.loc["2023-07-31"]
+    except:
+        raise Exception("yfinance is not responding, please try again")
 
     scaler.fit(train)
     scaled_train = scaler.transform(train)
@@ -142,8 +126,13 @@ def pred_lstm(input_ticker, real_k,real_r,real_t,option_type):
 
     lstm_model.summary()
 
-    ## fit model
-    lstm_model.fit (generator,epochs=30)
+    ## fit model and check saved model
+    try:
+        lstm_model = tf.keras.models.load_model(f'models/{input_ticker}.keras')
+    except ValueError:
+        lstm_model.fit (generator,epochs=30)
+        lstm_model.save(f'models/{input_ticker}.keras')
+
 
     ## Gather prediction parameters
     
