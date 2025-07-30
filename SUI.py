@@ -79,18 +79,15 @@ def get_option_inputs():
     return S, K, T, r, sigma, selected_type.lower()
 
 def models():
-    # Calculate Black-Scholes Price
     S, K, T, r, sigma, selected_type = get_option_inputs()
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Final Model Inputs")
+    st.sidebar.write(f"S = {S}")
+    st.sidebar.write(f"K = {K}")
+    st.sidebar.write(f"T = {T:.4f}")
+    st.sidebar.write(f"r = {r:.4f}")
+    st.sidebar.write(f"sigma = {sigma:.4f}")    
+    # Calculate Black-Scholes Price
     option_price_BSM = black_scholes(S, K, T, r, sigma, selected_type.lower())
     st.sidebar.write(f"Black-Scholes Price for {selected_type} Option: ${option_price_BSM:.2f}")
-    # Calculate Binomial Tree Price
-    option_price_BT = binomial_tree(S, K, T, r, sigma, selected_type.lower())
-    st.sidebar.write(f"Binomial Tree Price for {selected_type} Option: ${option_price_BT:.2f}")
-    # Display the results
-
-
-
-#models()
-S, K, T, r, sigma, selected_type = get_option_inputs()
-option_price_BT = binomial_tree(S, K, T, r, sigma, selected_type.lower())
-print(option_price_BT)
+models()
