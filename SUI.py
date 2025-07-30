@@ -76,10 +76,10 @@ def get_option_inputs():
     sigma = selected_row['impliedVolatility']  
     st.sidebar.write(f"Implied Volatility (σ): {sigma:.2%}")
     K = selected_contract  # Strike price from the selected contract    
-    return S, K, T, r, sigma, selected_type.lower()
+    return S, K, T, r, sigma, selected_type.lower(),input_ticker
 
 def models():
-    S, K, T, r, sigma, selected_type = get_option_inputs()
+    S, K, T, r, sigma, selected_type,input_ticker = get_option_inputs()
     st.sidebar.markdown("---")
     st.sidebar.subheader("Final Model Inputs")
     st.sidebar.write(f"S = {S}")
@@ -91,6 +91,6 @@ def models():
     option_price_BSM = black_scholes(S, K, T, r, sigma, selected_type.lower())
     st.sidebar.write(f"Black-Scholes Price for {selected_type} Option: ${option_price_BSM:.2f}")
     # Calculate LSTM Price
-    option_price_LSTM = pred_lstm(K,r,int(T/365),selected_type.lower())
+    option_price_LSTM = pred_lstm(input_ticker, K,r,int(T/365),selected_type.lower())
     st.sidebar.write(f"LSTM Price for {selected_type} Option: ${option_price_LSTM:.2f}")
 models()

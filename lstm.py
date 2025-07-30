@@ -83,14 +83,14 @@ def predict_n_last(scaled_test,n,width,n_input,n_features,lstm_model,scaler):
 #     plt.legend()
 #     plt.tight_layout()
 #     plt.show()
-def pred_lstm(real_k,real_r,real_t,option_type):
+def pred_lstm(input_ticker, real_k,real_r,real_t,option_type):
     
     ## Constants
     WINDOW_SIZE=25
     TEST_SIZE=90 #use the same value for predicting options
 
     ## import stock info
-    ticker_symbol = "NVDA"
+    ticker_symbol = input_ticker
 
     ticker = yf.Ticker(ticker_symbol)
     data = ticker.history(period="2y")
