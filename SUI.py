@@ -4,7 +4,6 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 from BSM import black_scholes
-from BT import binomial_tree
 st.title("TITLE")
 
 
