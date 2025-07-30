@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import numpy as np
+from math import e
 from datetime import timedelta
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.preprocessing.sequence import TimeseriesGenerator # type: ignore
@@ -61,6 +62,9 @@ def predict_n(scaled_test,n,width,n_input,n_features,lstm_model,scaler):
     predictions = list(map(lambda x: x[0][0],predictions))
     return predictions # returns list of predictions including the original data
 
+def predict_n_last(scaled_test,n,width,n_input,n_features,lstm_model,scaler):
+    return predict_n(scaled_test[-width:],n,width,n_input,n_features,lstm_model,scaler)[-1]
+
 # def test_pred_multiple_step():
 #     preds = predict_n(scaled_test[:WINDOW_SIZE],len(test.index)+1-WINDOW_SIZE,WINDOW_SIZE,n_input,n_features,lstm_model,scaler)
 #     #print(preds[-10:])
@@ -96,7 +100,7 @@ def main():
     puts_df = ticker.option_chain().puts #get and filter put df
     has_volume = puts_df["volume"] >= 50
     puts_df = puts_df.loc[has_volume]
-    #print(puts_df.head())   
+    print(puts_df.head())   
 
 
 
@@ -141,6 +145,22 @@ def main():
     ## fit model
     lstm_model.fit (generator,epochs=30)
 
+    ## Gather prediction parameters
+    
+    K="Strike price"
+    r="Risk-free interest rate"
+    t="Time to maturity" # time to expiry in days
+    pred_close = predict_n_last(scaled_test,t,WINDOW_SIZE,n_input,n_features,lstm_model,scaler)
+    call_payoff = max(pred_close-K,0)
+    put_payoff = max(K-pred_close,0)
+    
+    discount_factor = e**(-r*t/365)
+    call_price = call_payoff*discount_factor
+    put_price = put_payoff*discount_factor
+
+
+    
+
     # ##show model loss
     # loss_per_epoch = model.history.history["loss"]
     # plt.plot(range(len(loss_per_epoch)),loss_per_epoch)
@@ -151,7 +171,7 @@ def main():
 
     # preds = predict_n(scaled_test,5,WINDOW_SIZE,n_input,n_features,lstm_model,scaler) #predict 5 days into future
     
-    
+
     
     
 
