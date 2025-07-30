@@ -4,6 +4,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 from BSM import black_scholes
+from lstm import pred_lstm
 st.title("TITLE")
 
 
@@ -89,4 +90,7 @@ def models():
     # Calculate Black-Scholes Price
     option_price_BSM = black_scholes(S, K, T, r, sigma, selected_type.lower())
     st.sidebar.write(f"Black-Scholes Price for {selected_type} Option: ${option_price_BSM:.2f}")
+    # Calculate LSTM Price
+    option_price_LSTM = pred_lstm(K,r,int(T/365),selected_type.lower())
+    st.sidebar.write(f"LSTM Price for {selected_type} Option: ${option_price_LSTM:.2f}")
 models()

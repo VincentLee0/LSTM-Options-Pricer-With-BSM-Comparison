@@ -83,8 +83,8 @@ def predict_n_last(scaled_test,n,width,n_input,n_features,lstm_model,scaler):
 #     plt.legend()
 #     plt.tight_layout()
 #     plt.show()
-
-def main():
+def pred_lstm(real_k,real_r,real_t,option_type):
+    
     ## Constants
     WINDOW_SIZE=25
     TEST_SIZE=90 #use the same value for predicting options
@@ -147,9 +147,9 @@ def main():
 
     ## Gather prediction parameters
     
-    K="Strike price"
-    r="Risk-free interest rate"
-    t="Time to maturity" # time to expiry in days
+    K=real_k
+    r=real_r
+    t=real_t # time to expiry in days
     pred_close = predict_n_last(scaled_test,t,WINDOW_SIZE,n_input,n_features,lstm_model,scaler)
     call_payoff = max(pred_close-K,0)
     put_payoff = max(K-pred_close,0)
@@ -158,6 +158,7 @@ def main():
     call_price = call_payoff*discount_factor
     put_price = put_payoff*discount_factor
 
+    return call_price if option_type == "call" else put_price
 
     
 
@@ -172,7 +173,10 @@ def main():
     # preds = predict_n(scaled_test,5,WINDOW_SIZE,n_input,n_features,lstm_model,scaler) #predict 5 days into future
     
 
-    
+
+
+def main():
+    pred_lstm()
     
 
     
